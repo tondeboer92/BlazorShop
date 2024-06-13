@@ -1,0 +1,10 @@
+﻿@using BlazorShopApp.Components
+
+@page "/products/{Id:int}"
+
+<ProductDetails Id="Id" />
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+}

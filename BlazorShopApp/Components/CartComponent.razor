@@ -1,0 +1,89 @@
+﻿@using BlazorShopApp.Models
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<h3>Cart</h3>
+
+
+@if (cart != null && cart.Count > 0)
+{
+    <ul>
+        
+        @foreach (var product in cart)
+        {
+            <div><i class="fa-solid fa-xmark" @onclick="() => RemoveFromCart(product)" style="cursor:pointer; color:red;"></i>
+                <img src="@product.ImageUrl" alt="@product.Name" class="product-image" />
+                @product.Description - @product.Price kr
+            </div>
+        }
+    </ul>
+    decimal total = 0;
+    @foreach (var product in cart)
+    {
+        total += product.Price;
+    }
+    <p>Total: @total kr</p>
+
+    
+    <EditForm Model="@customer" OnValidSubmit="SubmitOrder">
+        <label>First Name:</label>
+        <InputText id="firstName" @bind-Value="customer.FirstName" class="form-control" />
+        <label>Surname:</label>
+        <InputText id="surname" @bind-Value="customer.LastName" class="form-control" />
+        <label>Email</label>
+        <InputText id="email" @bind-Value="customer.Email" class="form-control" />
+        <label>Phone Number:</label>
+        <InputText id="phoneNumber" @bind-Value="customer.PhoneNumber" class="form-control" />
+        <label>Street:</label>
+        <InputText id="street" @bind-Value="customer.Address.Street" class="form-control" />
+        <label>City:</label>
+        <InputText id="city" @bind-Value="customer.Address.City" class="form-control" />
+        <label>Postal Code:</label>
+        <InputText id="postalCode" @bind-Value="customer.Address.PostalCode" class="form-control" />
+        <label>Country:</label>
+        <InputText id="country" @bind-Value="customer.Address.Country" class="form-control" />
+
+        <button type="submit" class="btn btn-primary">Submit Order</button>
+    </EditForm>
+}
+else
+{
+    <p>Your cart is empty.</p>
+}
+
+@code {
+    private List<Product>? cart = new List<Product>();
+    private Customer? customer = new Customer();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var cartJson = await JS.InvokeAsync<string>("eval", "localStorage.getItem('cart')");
+        if (!string.IsNullOrEmpty(cartJson))
+        {
+            cart = System.Text.Json.JsonSerializer.Deserialize<List<Product>>(cartJson);
+        }
+
+        var customerJson = await JS.InvokeAsync<string>("localStorage.getItem", "customer");
+        if (!string.IsNullOrEmpty(customerJson))
+        {
+            customer = System.Text.Json.JsonSerializer.Deserialize<Customer>(customerJson);
+        }
+    }
+    
+    private async Task RemoveFromCart(Product product)
+    {
+        cart.Remove(product);
+        await JS.InvokeVoidAsync("localStorage.setItem", "cart", System.Text.Json.JsonSerializer.Serialize(cart));
+    }
+
+
+    private async Task SubmitOrder()
+    {
+        var customerJson = System.Text.Json.JsonSerializer.Serialize(customer);
+        await JS.InvokeVoidAsync("localStorage.setItem", "customer", customerJson);
+
+        NavigationManager.NavigateTo($"/confirmation");
+    }
+
+}

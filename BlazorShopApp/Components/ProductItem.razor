@@ -1,0 +1,30 @@
+﻿@using BlazorShopApp.Models
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+@code {
+    [Parameter]
+    public Product Product { get; set; } = default!;
+}
+
+<div class="product-item">
+    <img src="@Product.ImageUrl" alt="@Product.Name" class="product-image" @onclick="NavigateToProduct" />
+    <h4>@Product.Name</h4>
+    <p>@Product.Price sek</p>
+    <button @onclick="AddToCart">Add to Cart</button>
+</div>
+
+@code {
+    private void NavigateToProduct()
+    {
+        NavigationManager.NavigateTo($"/products/{Product.Id}");
+    }
+
+    private async Task AddToCart()
+    {
+        var cartJson = await JS.InvokeAsync<string>("localStorage.getItem", "cart");
+        var cart = string.IsNullOrEmpty(cartJson) ? new List<Product>() : System.Text.Json.JsonSerializer.Deserialize<List<Product>>(cartJson);
+        cart.Add(Product);
+        await JS.InvokeVoidAsync("localStorage.setItem", "cart", System.Text.Json.JsonSerializer.Serialize(cart));
+    }
+}

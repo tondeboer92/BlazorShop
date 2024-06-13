@@ -1,0 +1,21 @@
+﻿@using BlazorShopApp.Models
+@using BlazorShopApp.Data
+@inject ProductService ProductService
+
+<h3>Products</h3>
+
+<div class="product-list">
+    @foreach (var product in products)
+    {
+        <ProductItem Product=product />
+    }
+</div>
+
+@code {
+    private List<Product> products = new List<Product>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetProductsAsync();
+    }
+}

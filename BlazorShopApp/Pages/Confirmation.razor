@@ -1,0 +1,71 @@
+﻿@using BlazorShopApp.Models
+
+@inject IJSRuntime JS
+
+@page "/confirmation"
+@using Microsoft.AspNetCore.WebUtilities
+@inject NavigationManager NavigationManager
+
+@code {
+    private Customer customer = new Customer();
+    private List<Product> purchases = new List<Product>();
+    private decimal total = 0;
+    private int orderNumber;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var customerJson = await JS.InvokeAsync<string>("localStorage.getItem", "customer");
+        if (!string.IsNullOrEmpty(customerJson))
+        {
+            customer = System.Text.Json.JsonSerializer.Deserialize<Customer>(customerJson);
+        }
+
+        var cartJson = await JS.InvokeAsync<string>("localStorage.getItem", "cart");
+        if (!string.IsNullOrEmpty(cartJson))
+        {
+            purchases = System.Text.Json.JsonSerializer.Deserialize<List<Product>>(cartJson);
+            total = purchases.Sum(product => product.Price);
+        }
+
+        orderNumber = RandomIntGenerator.GenerateRandomInt(10000, 99999);
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            await JS.InvokeVoidAsync("localStorage.removeItem", "cart");
+        }
+    }
+    
+   
+    public class RandomIntGenerator
+    {
+        private static readonly Random random = new Random();
+
+        public static int GenerateRandomInt(int minValue, int maxValue)
+        {
+            return random.Next(minValue, maxValue);
+        }
+
+    }
+
+
+}
+
+<h3>Order #@orderNumber</h3>
+<p>Thank you for your purchase, @customer.FirstName @customer.LastName!</p>
+<p>Your Receipt:</p>
+<ul>
+    @foreach (var product in purchases)
+    {
+        <li>@product.Description - @product.Price kr</li>
+    }
+</ul>
+
+<p>Total: @total kr</p>
+    
+<p>Shipping to: </p>
+<p> @customer.Address.Street</p>
+<p> @customer.Address.PostalCode @customer.Address.Country</p>

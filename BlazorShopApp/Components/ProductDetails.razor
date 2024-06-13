@@ -1,0 +1,42 @@
+﻿@using BlazorShopApp.Models
+@using BlazorShopApp.Data
+
+@inject ProductService ProductService
+@inject IJSRuntime JS
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Product? product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductService.GetProductByIdAsync(Id);
+    }
+
+    private async Task AddToCart()
+    {
+        if (product != null)
+        {
+            var cartJson = await JS.InvokeAsync<string>("localStorage.getItem", "cart");
+            var cart = string.IsNullOrEmpty(cartJson) ? new List<Product>() : System.Text.Json.JsonSerializer.Deserialize<List<Product>>(cartJson);
+            cart.Add(product);
+            await JS.InvokeVoidAsync("localStorage.setItem", "cart", System.Text.Json.JsonSerializer.Serialize(cart));
+        }
+    }
+}
+
+@if (product != null)
+{
+    <div class="product-details">
+        <img src="@product.ImageUrl" alt="@product.Name" class= "product-image"   />
+        <h2>@product.Name</h2>
+        <p>@product.Description</p>
+        <h4>@product.Price kr</h4>
+        <button @onclick="AddToCart">Add to Cart</button>
+    </div>
+}
+else
+{
+    <p>Product not found.</p>
+}
