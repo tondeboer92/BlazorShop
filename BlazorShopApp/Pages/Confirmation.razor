@@ -18,14 +18,14 @@
         var customerJson = await JS.InvokeAsync<string>("localStorage.getItem", "customer");
         if (!string.IsNullOrEmpty(customerJson))
         {
-            customer = System.Text.Json.JsonSerializer.Deserialize<Customer>(customerJson);
+            customer = System.Text.Json.JsonSerializer.Deserialize<Customer>(customerJson) ?? new Customer();
         }
 
         var cartJson = await JS.InvokeAsync<string>("localStorage.getItem", "cart");
         if (!string.IsNullOrEmpty(cartJson))
         {
-            purchases = System.Text.Json.JsonSerializer.Deserialize<List<Product>>(cartJson);
-            total = purchases.Sum(product => product.Price);
+            purchases = System.Text.Json.JsonSerializer.Deserialize<List<Product>>(cartJson) ?? new List<Product>();
+            total = purchases?.Sum(product => product?.Price ?? 0) ?? 0;
         }
 
         orderNumber = RandomIntGenerator.GenerateRandomInt(10000, 99999);

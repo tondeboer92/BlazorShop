@@ -20,7 +20,7 @@
         {
             var cartJson = await JS.InvokeAsync<string>("localStorage.getItem", "cart");
             var cart = string.IsNullOrEmpty(cartJson) ? new List<Product>() : System.Text.Json.JsonSerializer.Deserialize<List<Product>>(cartJson);
-            cart.Add(product);
+            cart?.Add(product);
             await JS.InvokeVoidAsync("localStorage.setItem", "cart", System.Text.Json.JsonSerializer.Serialize(cart));
         }
     }

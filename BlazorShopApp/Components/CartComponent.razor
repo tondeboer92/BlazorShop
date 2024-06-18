@@ -8,20 +8,16 @@
 @if (cart != null && cart.Count > 0)
 {
     <ul>
-        
         @foreach (var product in cart)
         {
-            <div><i class="fa-solid fa-xmark" @onclick="() => RemoveFromCart(product)" style="cursor:pointer; color:red;"></i>
+            <div>
+                <i class="fa-solid fa-xmark" @onclick="() => RemoveFromCart(product)" style="cursor:pointer; color:red;"></i>
                 <img src="@product.ImageUrl" alt="@product.Name" class="product-image" />
                 @product.Description - @product.Price kr
             </div>
         }
     </ul>
-    decimal total = 0;
-    @foreach (var product in cart)
-    {
-        total += product.Price;
-    }
+    decimal total = cart.Sum(product => product.Price);
     <p>Total: @total kr</p>
 
     
@@ -31,7 +27,7 @@
         <label>Surname:</label>
         <InputText id="surname" @bind-Value="customer.LastName" class="form-control" />
         <label>Email</label>
-        <InputText id="email" @bind-Value="customer.Email" class="form-control" />
+        <InputText id="email" @bind-Value="customer.Email" class="form-control" />  
         <label>Phone Number:</label>
         <InputText id="phoneNumber" @bind-Value="customer.PhoneNumber" class="form-control" />
         <label>Street:</label>
@@ -67,14 +63,17 @@ else
         var customerJson = await JS.InvokeAsync<string>("localStorage.getItem", "customer");
         if (!string.IsNullOrEmpty(customerJson))
         {
-            customer = System.Text.Json.JsonSerializer.Deserialize<Customer>(customerJson);
+            customer = System.Text.Json.JsonSerializer.Deserialize<Customer>(customerJson) ?? new Customer();
         }
+
     }
-    
     private async Task RemoveFromCart(Product product)
-    {
-        cart.Remove(product);
-        await JS.InvokeVoidAsync("localStorage.setItem", "cart", System.Text.Json.JsonSerializer.Serialize(cart));
+        {
+        if (cart != null)
+        {
+            cart.Remove(product);
+            await JS.InvokeVoidAsync("localStorage.setItem", "cart", System.Text.Json.JsonSerializer.Serialize(cart));
+        }
     }
 
 
